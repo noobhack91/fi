@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import * as api from '../api';
 import { ConsigneeList } from '../components/ConsigneeList';
 import { ConsigneeSearch } from '../components/ConsigneeSearch';
 import { TenderHeader } from '../components/TenderHeader';
-import { LogisticsModal } from '../components/modals/LogisticsModal';
 import { ChallanModal } from '../components/modals/ChallanModal';
 import { InstallationModal } from '../components/modals/InstallationModal';
 import { InvoiceModal } from '../components/modals/InvoiceModal';
-import * as api from '../api';
-import { TenderDetails as ITenderDetails, ConsigneeDetails } from '../types';
-const Tooltip: React.FC<{ content: string[] }> = ({ content }) => (  
-    <div className="absolute z-10 bg-black text-white p-2 rounded shadow-lg text-sm">  
-      <ul className="list-disc list-inside">  
-        {content.map((item, index) => (  
-          <li key={index}>{item}</li>  
-        ))}  
-      </ul>  
-    </div>  
-  );  
+import { LogisticsModal } from '../components/modals/LogisticsModal';
+import { ConsigneeDetails, TenderDetails as ITenderDetails } from '../types';
+const Tooltip: React.FC<{ content: string[] }> = ({ content }) => (
+  <div className="absolute z-10 bg-black text-white p-2 rounded shadow-lg text-sm">
+    <ul className="list-disc list-inside">
+      {content.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  </div>
+);
 export const TenderDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [tender, setTender] = useState<ITenderDetails | null>(null);
@@ -32,7 +32,7 @@ export const TenderDetails: React.FC = () => {
     invoice: false
   });
   const [loading, setLoading] = useState(true);
-  const [hoveredTender, setHoveredTender] = useState<string | null>(null);  
+  const [hoveredTender, setHoveredTender] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTenderDetails();
@@ -73,6 +73,9 @@ export const TenderDetails: React.FC = () => {
     setSelectedConsigneeId(id);
     setModals({ ...modals, invoice: true });
   };
+  const handleUpdateAccessories = async (id: string) => {
+    await fetchTenderDetails(); // Refresh data after accessories update  
+  };
 
   const handleUpdateSerialNumber = async (id: string, serialNumber: string) => {
     try {
@@ -85,6 +88,21 @@ export const TenderDetails: React.FC = () => {
       toast.success('Serial number updated successfully');
     } catch (error) {
       toast.error('Failed to update serial number');
+    }
+  };
+  const handleExportCSV = async () => {
+    try {
+      const response = await api.exportTenderData(id!);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `tender_${tender?.tenderNumber}_report.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Export successful');
+    } catch (error) {
+      toast.error('Failed to export data');
     }
   };
 
@@ -105,7 +123,7 @@ export const TenderDetails: React.FC = () => {
           response = await api.uploadInvoice(data);
           break;
       }
-      
+
       await fetchTenderDetails(); // Refresh data
       toast.success(`${type} details updated successfully`);
       setModals({ ...modals, [type.toLowerCase()]: false });
@@ -125,20 +143,26 @@ export const TenderDetails: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Tender Details
-        </h1>
-        
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Tender Details</h1>
+          <button
+            onClick={handleExportCSV}
+            className="bg-green-600 text-white px-4 py-2 rounded-md"
+          >
+            Export to CSV
+          </button>
+        </div>
+
         {tender && <TenderHeader tender={tender} />}
-        
+
         <ConsigneeSearch
           districts={Array.from(new Set(consignees.map(c => c.districtName)))}
           selectedDistricts={selectedDistricts}
           onDistrictChange={handleDistrictChange}
         />
-        
+
         <ConsigneeList
-          consignees={consignees.filter(c => 
+          consignees={consignees.filter(c =>
             selectedDistricts.length === 0 || selectedDistricts.includes(c.districtName)
           )}
           onUpdateLogistics={handleUpdateLogistics}
@@ -146,6 +170,8 @@ export const TenderDetails: React.FC = () => {
           onUpdateInstallation={handleUpdateInstallation}
           onUpdateInvoice={handleUpdateInvoice}
           onUpdateSerialNumber={handleUpdateSerialNumber}
+          onUpdateAccessories={handleUpdateAccessories}
+
         />
 
         <LogisticsModal
@@ -175,6 +201,7 @@ export const TenderDetails: React.FC = () => {
           onSubmit={(data) => handleModalSubmit('Invoice', data)}
           consigneeId={selectedConsigneeId}
         />
+
       </div>
     </div>
   );

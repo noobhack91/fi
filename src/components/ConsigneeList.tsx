@@ -2,6 +2,7 @@ import { Check, ClipboardCheck, Edit, FileSpreadsheet, FileText, Package, Truck 
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { ConsigneeDetails } from '../types';
+import { AccessoriesModal } from './modals/AccessoriesModal';
 
 const Tooltip: React.FC<{ content: string[] }> = ({ content }) => (
   <div className="absolute z-10 bg-black text-white p-2 rounded shadow-lg text-sm -mt-20">
@@ -20,6 +21,7 @@ interface ConsigneeListProps {
   onUpdateInstallation: (id: string) => void;
   onUpdateInvoice: (id: string) => void;
   onUpdateSerialNumber: (id: string, serialNumber: string) => void;
+  onUpdateAccessories: (id: string) => void;
 }
 
 export const ConsigneeList: React.FC<ConsigneeListProps> = ({
@@ -29,11 +31,14 @@ export const ConsigneeList: React.FC<ConsigneeListProps> = ({
   onUpdateInstallation,
   onUpdateInvoice,
   onUpdateSerialNumber,
+  onUpdateAccessories
 }) => {
   const { user } = useAuth();
   const [editingSerialNumber, setEditingSerialNumber] = useState<string | null>(null);
   const [tempSerialNumber, setTempSerialNumber] = useState<string>('');
   const [hoveredConsignee, setHoveredConsignee] = useState<string | null>(null);
+  const [accessoriesModal, setAccessoriesModal] = useState(false);
+  const [selectedConsignee, setSelectedConsignee] = useState<ConsigneeDetails | null>(null);
 
   const getStatusColor = (status: string): string => {
     const statusColors: Record<string, string> = {
@@ -100,6 +105,16 @@ export const ConsigneeList: React.FC<ConsigneeListProps> = ({
                     <div className="flex items-center text-blue-600 cursor-pointer">
                       <Package className="w-5 h-5 mr-1" />
                       <span>({consignee.accessoriesPending.count})</span>
+                      <button
+                        onClick={() => {
+                          setSelectedConsignee(consignee);
+                          setAccessoriesModal(true);
+                        }}
+                        className="text-yellow-600 hover:text-yellow-900 ml-2"
+                        title="Manage Accessories"
+                      >
+                        <Package className="w-5 h-5" />
+                      </button>
                     </div>
                     {hoveredConsignee === consignee.id && (
                       <Tooltip content={consignee.accessoriesPending.items || []} />
@@ -223,6 +238,18 @@ export const ConsigneeList: React.FC<ConsigneeListProps> = ({
           ))}
         </tbody>
       </table>
+      {selectedConsignee && (
+        <AccessoriesModal
+          isOpen={accessoriesModal}
+          onClose={() => setAccessoriesModal(false)}
+          consigneeId={selectedConsignee.id}
+          accessories={selectedConsignee.accessoriesPending}
+          onUpdate={() => {
+            onUpdateAccessories(selectedConsignee.id);
+            setAccessoriesModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -32,9 +32,10 @@ export const searchTenders = async (req, res) => {
         [Op.iLike]: `%${tenderNumber}%`
       };
     }
-
     if (status) {
-      where.status = status;
+      where.status = {
+        [Op.eq]: status
+      };
     }
 
     if (accessoriesPending) {

@@ -13,7 +13,8 @@ export const EquipmentInstallation: React.FC = () => {
     blockName: string;
     facilityName: string;
   }>>([]);
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
+
 
   const handleSubmit = async (formData: any) => {
     try {
@@ -30,7 +31,7 @@ export const EquipmentInstallation: React.FC = () => {
 
       await api.createInstallationRequest(requestData);
       toast.success('Equipment installation request created successfully');
-      navigate('/tenders', { replace: true });  
+      navigate(`/tenders`);
       // Reset form
       setLocations([]);
     } catch (error: any) {
@@ -42,7 +43,7 @@ export const EquipmentInstallation: React.FC = () => {
     try {
       const response = await api.uploadConsigneeCSV(file);
       setLocations(response.data.locations);
-      
+
       if (response.data.warnings) {
         toast.warning(response.data.warnings);
       }

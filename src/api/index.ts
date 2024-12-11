@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';  
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -36,7 +36,17 @@ interface InstallationRequest {
   accessories: string[];
   locations: Location2[];
 }
+interface Accessory {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
 
+interface Consumable {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
 // Auth APIs
 export const login = (data: { username: string; password: string }) =>
   api.post('/auth/login', data);
@@ -112,3 +122,38 @@ export const getConsigneeFiles = async (consigneeId: string, type: string) => {
 export const deleteFile = async (url: string, type: string) => {
   return api.delete(`/upload/${type}/file`, { data: { url } });
 };
+
+// Get consignee details including all documents  
+export const getConsigneeDetails = (id: string) =>
+  api.get(`/consignees/${id}/details`);
+
+// Update accessories status  
+export const updateAccessoriesStatus = (id: string, data: { accessoryName: string, status: boolean }) =>
+  api.patch(`/consignees/${id}/accessories`, data);
+
+export const exportTenderData = (tenderId: string) =>
+  api.get(`/tenders/${tenderId}/export`, {
+    responseType: 'blob'
+  });
+export const getAccessories = () => api.get<Accessory[]>('/items/accessories');
+
+export const createAccessory = (data: { name: string }) =>
+  api.post<Accessory>('/items/accessories', data);
+
+export const updateAccessory = (id: string, data: { name: string }) =>
+  api.put<Accessory>(`/items/accessories/${id}`, data);
+
+export const deleteAccessory = (id: string) =>
+  api.delete(`/items/accessories/${id}`);
+
+// Consumables APIs  
+export const getConsumables = () => api.get<Consumable[]>('/items/consumables');
+
+export const createConsumable = (data: { name: string }) =>
+  api.post<Consumable>('/items/consumables', data);
+
+export const updateConsumable = (id: string, data: { name: string }) =>
+  api.put<Consumable>(`/items/consumables/${id}`, data);
+
+export const deleteConsumable = (id: string) =>
+  api.delete(`/items/consumables/${id}`);  
