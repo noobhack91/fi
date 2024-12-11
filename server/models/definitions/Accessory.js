@@ -1,5 +1,5 @@
 // server/models/definitions/Accessory.js  
-import { DataTypes } from 'sequelize';  
+import { DataTypes } from 'sequelize';
 
 export default (sequelize) => {  
   const Accessory = sequelize.define('Accessory', {  

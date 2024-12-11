@@ -34,6 +34,8 @@ interface InstallationRequest {
   remarks?: string;
   hasAccessories: boolean;
   accessories: string[];
+  hasConsumables: boolean;  // Add this  
+  consumables: string[];    // Add this  
   locations: Location2[];
 }
 interface Accessory {
