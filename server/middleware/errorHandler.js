@@ -1,13 +1,21 @@
 import logger from '../config/logger.js';
 
 export const errorHandler = (err, req, res, next) => {
-  logger.error({
+  const error = {
     message: err.message,
-    stack: err.stack,
     path: req.path,
-    method: req.method
+    method: req.method,
+    timestamp: new Date().toISOString()
+  };
+
+  // Log error details  
+  logger.error({
+    ...error,
+    stack: err.stack,
+    user: req.user?.id
   });
 
+  // Handle specific error types  
   if (err.name === 'SequelizeValidationError') {
     return res.status(400).json({
       error: 'Validation error',
@@ -28,8 +36,9 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  res.status(500).json({
-    error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  // Generic error response  
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
+    requestId: req.id
   });
-};
+};  

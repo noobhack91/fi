@@ -43,3 +43,40 @@ const installationSchema = z.object({
 export function validateInstallationRequest(data) {
   return installationSchema.parse(data);
 }
+
+// middleware/validation.js
+export const validateLOA = (req, res, next) => {
+  const { loaNumber, loaDate, tenderId } = req.body;
+
+  if (!loaNumber || !loaDate || !tenderId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (new Date(loaDate) > new Date()) {
+    return res.status(400).json({ error: 'LOA date cannot be in the future' });
+  }
+
+  next();
+};
+
+export const validatePO = (req, res, next) => {
+  const {
+    poNumber,
+    poDate,
+    leadTimeToDeliver,
+    leadTimeToInstall,
+    machines,
+    machineCount,
+    loaId
+  } = req.body;
+
+  if (!poNumber || !poDate || !leadTimeToDeliver || !leadTimeToInstall || !machines || !machineCount || !loaId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (new Date(poDate) > new Date()) {
+    return res.status(400).json({ error: 'PO date cannot be in the future' });
+  }
+
+  next();
+};

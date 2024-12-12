@@ -13,8 +13,10 @@ export default (sequelize) => {
       allowNull: false
     },
     authorityType: {
-      type: DataTypes.ENUM('UPMSCL', 'AUTONOMOUS', 'CMSD', 'DGME', 'AIIMS', 'SGPGI', 'KGMU', 'BHU',
-        'BMSICL', 'OSMCL', 'TRADE', 'GDMC', 'AMSCL'),
+      type: DataTypes.ENUM(
+        'UPMSCL', 'AUTONOMOUS', 'CMSD', 'DGME', 'AIIMS', 'SGPGI', 'KGMU', 'BHU',
+        'BMSICL', 'OSMCL', 'TRADE', 'GDMC', 'AMSCL'
+      ),
       allowNull: false
     },
     poDate: {
@@ -48,11 +50,11 @@ export default (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
-    selectedAccessories: {  // renamed from accessories  
+    selectedAccessories: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: []
     },
-    selectedConsumables: {  // renamed from consumables  
+    selectedConsumables: {
       type: DataTypes.ARRAY(DataTypes.STRING),
       defaultValue: []
     },
@@ -61,25 +63,30 @@ export default (sequelize) => {
         'Draft',
         'In Progress',
         'Partially Completed',
-        'Pending',
+        'Completed'
       ),
-      defaultValue: 'Draft'
+      defaultValue: 'Draft',
+      allowNull: false
     },
     accessoriesPending: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: false,
+      allowNull: false
     },
     consumablesPending: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: false,
+      allowNull: false
     },
     installationPending: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
+      defaultValue: true,
+      allowNull: false
     },
     invoicePending: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
+      defaultValue: true,
+      allowNull: false
     },
     createdBy: {
       type: DataTypes.UUID,
@@ -95,4 +102,4 @@ export default (sequelize) => {
   });
 
   return Tender;
-};  
+};

@@ -11,6 +11,10 @@ import defineInvoice from './definitions/Invoice.js';
 import defineLogisticsDetails from './definitions/LogisticsDetails.js';
 import defineTender from './definitions/Tender.js';
 import defineUser from './definitions/User.js';
+// Import new model definitions
+import defineLOA from './definitions/LOA.js';
+import definePO from './definitions/PO.js';
+// import defineAuditLog from './definitions/AuditLog.js';
 
 dotenv.config();
 
@@ -37,7 +41,7 @@ const sequelize = new Sequelize(
   }
 );
 
-// Initialize models  
+// Initialize existing models
 const User = defineUser(sequelize);
 const Tender = defineTender(sequelize);
 const Consignee = defineConsignee(sequelize);
@@ -50,7 +54,12 @@ const EquipmentLocationModel = EquipmentLocation.init(sequelize);
 const Accessory = defineAccessory(sequelize);
 const Consumable = defineConsumable(sequelize);
 
-// Define associations  
+// Initialize new models
+const LOA = defineLOA(sequelize);
+const PO = definePO(sequelize);
+// const AuditLog = defineAuditLog(sequelize);
+
+// Define existing associations
 Tender.hasMany(Consignee, {
   foreignKey: 'tenderId',
   as: 'consignees'
@@ -60,36 +69,76 @@ Consignee.belongsTo(Tender, {
   foreignKey: 'tenderId'
 });
 
-// Add Accessory and Consumable associations with Tender  
+// Define new associations for LOA and PO
+Tender.hasMany(LOA, {
+  foreignKey: 'tenderId',
+  as: 'loas'
+});
+
+LOA.belongsTo(Tender, {
+  foreignKey: 'tenderId'
+});
+
+LOA.hasMany(PO, {
+  foreignKey: 'loaId',
+  as: 'purchaseOrders'
+});
+
+PO.belongsTo(LOA, {
+  foreignKey: 'loaId'
+});
+
+// Add user associations for audit trail
+User.hasMany(LOA, {
+  foreignKey: 'createdBy',
+  as: 'createdLOAs'
+});
+
+User.hasMany(PO, {
+  foreignKey: 'createdBy',
+  as: 'createdPOs'
+});
+
+LOA.belongsTo(User, {
+  foreignKey: 'createdBy',
+  as: 'creator'
+});
+
+PO.belongsTo(User, {
+  foreignKey: 'createdBy',
+  as: 'creator'
+});
+
+// Existing accessory and consumable associations
 Tender.belongsToMany(Accessory, {
   through: 'TenderAccessories',
   foreignKey: 'tenderId',
   otherKey: 'accessoryId',
-  as: 'accessories'
+  as: 'accessoryItems'
 });
 
 Accessory.belongsToMany(Tender, {
   through: 'TenderAccessories',
   foreignKey: 'accessoryId',
   otherKey: 'tenderId',
-  as: 'tenders'
+  as: 'accessoryTenders'
 });
 
 Tender.belongsToMany(Consumable, {
   through: 'TenderConsumables',
   foreignKey: 'tenderId',
   otherKey: 'consumableId',
-  as: 'consumables'
+  as: 'consumableItems'
 });
 
 Consumable.belongsToMany(Tender, {
   through: 'TenderConsumables',
   foreignKey: 'consumableId',
   otherKey: 'tenderId',
-  as: 'tenders'
+  as: 'consumableTenders'
 });
 
-// Existing associations  
+// Existing logistics and installation associations
 Consignee.hasOne(LogisticsDetails, {
   foreignKey: 'consigneeId',
   as: 'logisticsDetails'
@@ -134,36 +183,15 @@ EquipmentInstallation.hasMany(EquipmentLocation, {
 EquipmentLocation.belongsTo(EquipmentInstallation, {
   foreignKey: 'installationId'
 });
-// In models/index.js, modify the associations section:  
 
-// For Accessories  
-Tender.belongsToMany(Accessory, {
-  through: 'TenderAccessories',
-  foreignKey: 'tenderId',
-  otherKey: 'accessoryId',
-  as: 'accessoryItems'
+// Add PO associations with Consignee
+PO.hasMany(Consignee, {
+  foreignKey: 'poId',
+  as: 'consignees'
 });
 
-Accessory.belongsToMany(Tender, {
-  through: 'TenderAccessories',
-  foreignKey: 'accessoryId',
-  otherKey: 'tenderId',
-  as: 'accessoryTenders' // Changed from 'tenders' to 'accessoryTenders'  
-});
-
-// For Consumables  
-Tender.belongsToMany(Consumable, {
-  through: 'TenderConsumables',
-  foreignKey: 'tenderId',
-  otherKey: 'consumableId',
-  as: 'consumableItems'
-});
-
-Consumable.belongsToMany(Tender, {
-  through: 'TenderConsumables',
-  foreignKey: 'consumableId',
-  otherKey: 'tenderId',
-  as: 'consumableTenders' // Changed from 'tenders' to 'consumableTenders'  
+Consignee.belongsTo(PO, {
+  foreignKey: 'poId'
 });
 
 export {
@@ -175,7 +203,9 @@ export {
   EquipmentLocation,
   InstallationReport,
   Invoice,
+  LOA,
   LogisticsDetails,
+  PO,
   sequelize,
   Tender,
   User

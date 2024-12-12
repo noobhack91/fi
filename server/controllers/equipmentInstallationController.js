@@ -104,7 +104,10 @@ export const uploadConsigneeCSV = async (req, res) => {
       srNo: (index + 1).toString(),
       districtName: record.district_name?.trim(),
       blockName: record.block_name?.trim(),
-      facilityName: record.facility_name?.trim()
+      facilityName: record.facility_name?.trim(),
+      contactName: record.contact_name?.trim(),
+      contactPhone: record.contact_phone?.trim(),
+      contactEmail: record.contact_email?.trim()
     }));
 
     const warnings = [];
@@ -127,9 +130,10 @@ export const uploadConsigneeCSV = async (req, res) => {
   }
 };
 
+
 export const downloadTemplate = async (req, res) => {
   try {
-    const template = 'district_name,block_name,facility_name\n';
+    const template = 'district_name,block_name,facility_name,contact_name,contact_phone,contact_email\n';
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=consignee_template.csv');
     res.send(template);
